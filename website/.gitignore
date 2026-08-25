@@ -1,0 +1,17 @@
+# Avhengigheter og bygg
+node_modules/
+dist/
+.astro/
+
+# Credentials — ALDRI sjekk inn disse
+.env
+.env.local
+.env.*.local
+
+# OS/editor
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+
+# Logger
+npm-debug.log*
