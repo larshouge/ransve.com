@@ -1,18 +1,22 @@
 ---
 import { Image, getImage } from 'astro:assets';
-import { render, type CollectionEntry } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import type { ImageMetadata } from 'astro';
 
 interface Props {
   entry: CollectionEntry<'tidslinje'>;
+  bilde: ImageMetadata;
   eager?: boolean;
 }
-const { entry, eager = false } = Astro.props;
-const { aar, tittel, bilde, alt, bildetekst } = entry.data;
-const { Content } = await render(entry);
-// Full oppløsning til lightboxen. entry.body er rå Markdown-tekst uten
-// formattering her (ett avsnitt), så den kan brukes rett i en data-attributt.
+const { entry, bilde, eager = false } = Astro.props;
+const { aar, tittel, alt, bildetekst, tekst } = entry.data;
+// tekst kan ha flere avsnitt skilt med blank linje i CSV-cellen.
+const avsnitt = tekst
+  .split(/\n{2,}/)
+  .map((p) => p.trim())
+  .filter(Boolean);
+// Full oppløsning til lightboxen.
 const full = await getImage({ src: bilde, width: 1600 });
-const tekst = entry.body?.trim() ?? '';
 ---
 <section class="panel" aria-labelledby={`tiar-${entry.id}`}>
   <button
@@ -39,7 +43,7 @@ const tekst = entry.body?.trim() ?? '';
   <div class="body">
     <h2 class="years" id={`tiar-${entry.id}`}>{aar}</h2>
     <div class="title">{tittel}</div>
-    <div class="text"><Content /></div>
+    <div class="text">{avsnitt.map((p) => <p>{p}</p>)}</div>
     <div class="caption">{bildetekst}</div>
   </div>
 </section>
@@ -100,13 +104,16 @@ const tekst = entry.body?.trim() ?? '';
     color: var(--rv-muted);
     text-transform: uppercase;
   }
-  .text :global(p) {
+  .text p {
     font-family: var(--rv-serif);
     font-size: 15px;
     line-height: 1.75;
     color: var(--rv-body);
     max-width: 460px;
     margin: 0;
+  }
+  .text p + p {
+    margin-top: 12px;
   }
   .caption {
     font-family: var(--rv-sans);
