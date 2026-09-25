@@ -1,16 +1,20 @@
 ---
-// Punkter uten href har ennå ingen side og vises som ren tekst.
-const items: { label: string; href?: string }[] = [
+const items = [
   { label: 'Hjem', href: '/no/' },
-  { label: 'Verk' },
-  { label: 'Om' },
-  { label: 'Kontakt' },
+  { label: 'Verk', href: '/no/verk/' },
+  { label: 'Om', href: '/no/om/' },
+  { label: 'Kontakt', href: '/no/kontakt/' },
 ];
+const current = Astro.url.pathname;
 ---
 <nav class="nav">
   <a class="brand" href="/no/">RANSVE</a>
   <div class="links">
-    {items.map((item) => (item.href ? <a href={item.href}>{item.label}</a> : <span>{item.label}</span>))}
+    {items.map((item) => (
+      <a href={item.href} aria-current={current === item.href ? 'page' : undefined}>
+        {item.label}
+      </a>
+    ))}
   </div>
 </nav>
 
@@ -43,5 +47,8 @@ const items: { label: string; href?: string }[] = [
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--rv-muted);
+  }
+  .links a[aria-current='page'] {
+    color: var(--rv-text);
   }
 </style>

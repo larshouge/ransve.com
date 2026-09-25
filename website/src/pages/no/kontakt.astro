@@ -1,0 +1,20 @@
+---
+import { getEntry, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import PageHero from '../../components/PageHero.astro';
+import Footer from '../../components/Footer.astro';
+
+const kontakt = await getEntry('sider', 'kontakt');
+if (!kontakt) throw new Error('Mangler src/content/sider/kontakt.md');
+const { Content } = await render(kontakt);
+---
+<Base title="Kontakt — Bjørn Ransve" description={kontakt.data.merkelapp}>
+  <Nav />
+  <main>
+    <PageHero kicker={kontakt.data.merkelapp} heading={kontakt.data.overskrift} portrettTekst={kontakt.data.portrettTekst}>
+      <Content />
+    </PageHero>
+  </main>
+  <Footer />
+</Base>

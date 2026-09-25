@@ -1,7 +1,10 @@
 ---
 // Global visningsboks: åpnes når man klikker på et bilde med
-// data-lightbox-trigger. Metadata sendes inn via data-attributter
-// på selve utløser-knappen (se DecadePanel.astro).
+// data-lightbox-trigger, hvor som helst på siten (tidslinjen på forsiden,
+// verk-oversikten...). Metadata sendes inn via data-attributter på selve
+// utløser-elementet. data-detaljer (teknikk/mål) og data-status (pris/status)
+// er valgfrie — brukes av verk-kortene, står tomme og skjules automatisk
+// (:empty) for tidslinjepanelene, som ikke har dem.
 ---
 <dialog id="rv-lightbox" class="rv-lightbox" aria-labelledby="rv-lightbox-years">
   <button type="button" class="close" data-lightbox-close aria-label="Lukk">✕</button>
@@ -11,7 +14,9 @@
   <div class="meta">
     <h2 data-lightbox-years id="rv-lightbox-years"></h2>
     <div class="title" data-lightbox-title></div>
+    <div class="detaljer" data-lightbox-detaljer></div>
     <p class="text" data-lightbox-text></p>
+    <div class="status" data-lightbox-status></div>
     <div class="caption" data-lightbox-caption></div>
   </div>
 </dialog>
@@ -22,7 +27,9 @@
     const img = dialog.querySelector<HTMLImageElement>('[data-lightbox-img]')!;
     const years = dialog.querySelector<HTMLElement>('[data-lightbox-years]')!;
     const title = dialog.querySelector<HTMLElement>('[data-lightbox-title]')!;
+    const detaljer = dialog.querySelector<HTMLElement>('[data-lightbox-detaljer]')!;
     const text = dialog.querySelector<HTMLElement>('[data-lightbox-text]')!;
+    const status = dialog.querySelector<HTMLElement>('[data-lightbox-status]')!;
     const caption = dialog.querySelector<HTMLElement>('[data-lightbox-caption]')!;
 
     const open = (trigger: HTMLElement) => {
@@ -30,7 +37,9 @@
       img.alt = trigger.dataset.alt ?? '';
       years.textContent = trigger.dataset.aar ?? '';
       title.textContent = trigger.dataset.tittel ?? '';
+      detaljer.textContent = trigger.dataset.detaljer ?? '';
       text.textContent = trigger.dataset.tekst ?? '';
+      status.textContent = trigger.dataset.status ?? '';
       caption.textContent = trigger.dataset.bildetekst ?? '';
       dialog.showModal();
     };
@@ -121,6 +130,11 @@
     color: var(--rv-muted);
     text-transform: uppercase;
   }
+  .detaljer {
+    font-family: var(--rv-sans);
+    font-size: 12px;
+    color: var(--rv-muted);
+  }
   .text {
     font-family: var(--rv-serif);
     font-size: 15px;
@@ -128,10 +142,20 @@
     color: var(--rv-body);
     margin: 0;
   }
+  .status {
+    font-family: var(--rv-sans);
+    font-size: 13px;
+    color: var(--rv-text);
+  }
   .caption {
     font-family: var(--rv-sans);
     font-size: 10px;
     letter-spacing: 0.06em;
     color: var(--rv-faint);
+  }
+  .detaljer:empty,
+  .status:empty,
+  .caption:empty {
+    display: none;
   }
 </style>
