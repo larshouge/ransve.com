@@ -1,0 +1,47 @@
+---
+// Punkter uten href har ennå ingen side og vises som ren tekst.
+const items: { label: string; href?: string }[] = [
+  { label: 'Hjem', href: '/no/' },
+  { label: 'Verk' },
+  { label: 'Om' },
+  { label: 'Kontakt' },
+];
+---
+<nav class="nav">
+  <a class="brand" href="/no/">RANSVE</a>
+  <div class="links">
+    {items.map((item) => (item.href ? <a href={item.href}>{item.label}</a> : <span>{item.label}</span>))}
+  </div>
+</nav>
+
+<style>
+  .nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px var(--rv-gutter);
+    border-bottom: 1px solid var(--rv-line);
+    position: sticky;
+    top: 0;
+    background: var(--rv-bg);
+    z-index: 10;
+  }
+  .brand {
+    font-family: var(--rv-serif);
+    font-size: 20px;
+    letter-spacing: 0.04em;
+    color: var(--rv-text);
+  }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 28px;
+    font-family: var(--rv-sans);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--rv-muted);
+  }
+</style>
