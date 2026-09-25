@@ -1,5 +1,5 @@
 ---
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import { render, type CollectionEntry } from 'astro:content';
 
 interface Props {
@@ -9,9 +9,25 @@ interface Props {
 const { entry, eager = false } = Astro.props;
 const { aar, tittel, bilde, alt, bildetekst } = entry.data;
 const { Content } = await render(entry);
+// Full oppløsning til lightboxen. entry.body er rå Markdown-tekst uten
+// formattering her (ett avsnitt), så den kan brukes rett i en data-attributt.
+const full = await getImage({ src: bilde, width: 1600 });
+const tekst = entry.body?.trim() ?? '';
 ---
 <section class="panel" aria-labelledby={`tiar-${entry.id}`}>
-  <div class="media">
+  <button
+    type="button"
+    class="media"
+    data-lightbox-trigger
+    data-full={full.src}
+    data-alt={alt}
+    data-aar={aar}
+    data-tittel={tittel}
+    data-tekst={tekst}
+    data-bildetekst={bildetekst}
+    aria-haspopup="dialog"
+    aria-label={`Vis ${tittel}, ${aar}, i full størrelse`}
+  >
     <Image
       src={bilde}
       alt={alt}
@@ -19,7 +35,7 @@ const { Content } = await render(entry);
       sizes="(min-width: 900px) 50vw, 100vw"
       loading={eager ? 'eager' : 'lazy'}
     />
-  </div>
+  </button>
   <div class="body">
     <h2 class="years" id={`tiar-${entry.id}`}>{aar}</h2>
     <div class="title">{tittel}</div>
@@ -39,12 +55,26 @@ const { Content } = await render(entry);
     min-width: 280px;
     aspect-ratio: 4 / 3;
     overflow: hidden;
+    display: block;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: zoom-in;
   }
   .media img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     filter: grayscale(15%);
+    transition: transform 400ms ease;
+  }
+  .media:hover img,
+  .media:focus-visible img {
+    transform: scale(1.02);
+  }
+  .media:focus-visible {
+    outline: 2px solid var(--rv-muted);
+    outline-offset: -2px;
   }
   .body {
     flex: 1 1 420px;
