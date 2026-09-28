@@ -3,7 +3,7 @@ import type { ImageMetadata } from 'astro';
 import { getCollection, getEntry, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Nav from '../../components/Nav.astro';
-import PortraitRotator from '../../components/PortraitRotator.astro';
+import PageHero from '../../components/PageHero.astro';
 import DecadePanel from '../../components/DecadePanel.astro';
 import Footer from '../../components/Footer.astro';
 import Lightbox from '../../components/Lightbox.astro';
@@ -30,58 +30,12 @@ const tiar = (await getCollection('tidslinje'))
 <Base title="Bjørn Ransve — maler og grafiker" description={forside.data.merkelapp}>
   <Nav />
   <main>
-    <header class="hero">
-      <div class="intro">
-        <div class="kicker">{forside.data.merkelapp}</div>
-        <h1>
-          {forside.data.overskrift.map((line, i) => (i === 0 ? line : <><br />{line}</>))}
-        </h1>
-        <div class="lede"><Ingress /></div>
-      </div>
-      <PortraitRotator caption={forside.data.portrettTekst} />
-    </header>
+    <PageHero kicker={forside.data.merkelapp} heading={forside.data.overskrift} portrettTekst={forside.data.portrettTekst}>
+      <Ingress />
+    </PageHero>
 
     {tiar.map(({ entry, bilde }, i) => <DecadePanel entry={entry} bilde={bilde} eager={i === 0} />)}
   </main>
   <Footer />
   <Lightbox />
 </Base>
-
-<style>
-  .hero {
-    display: flex;
-    flex-wrap: wrap;
-    gap: clamp(24px, 5vw, 56px);
-    align-items: center;
-    padding: clamp(32px, 7vw, 72px) var(--rv-gutter) clamp(40px, 6vw, 64px);
-  }
-  .intro {
-    flex: 2 1 380px;
-    min-width: 0;
-  }
-  .kicker {
-    font-family: var(--rv-sans);
-    font-size: 10px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--rv-muted);
-    margin-bottom: 18px;
-  }
-  h1 {
-    font-family: var(--rv-serif);
-    font-weight: 400;
-    font-size: clamp(32px, 5.5vw, 52px);
-    line-height: 1.05;
-    letter-spacing: -0.01em;
-    color: var(--rv-text);
-    margin: 0 0 20px;
-  }
-  .lede :global(p) {
-    font-family: var(--rv-serif);
-    font-size: 15px;
-    line-height: 1.8;
-    color: var(--rv-muted);
-    max-width: 520px;
-    margin: 0;
-  }
-</style>

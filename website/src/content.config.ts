@@ -40,13 +40,16 @@ const verk = defineCollection({
   }),
 });
 
-// Sidetekst som ikke hører til et enkelt verk (forside-intro o.l.).
+// Sidetekst som ikke hører til et enkelt verk: forside-intro, Om, Kontakt.
+// Kroppsteksten (Markdown under frontmatter) er sidens løpende innhold.
+// portrettTekst er valgfri — sett den for å vise portrettrotasjonen på siden
+// (forside og Om gjør det, Kontakt gjør det ikke).
 const sider = defineCollection({
-  loader: glob({ pattern: '*.md', base: './src/content/sider' }),
+  loader: glob({ pattern: ['*.md', '!README.md'], base: './src/content/sider' }),
   schema: z.object({
     merkelapp: z.string(),
     overskrift: z.array(z.string()),
-    portrettTekst: z.string(),
+    portrettTekst: z.string().optional(),
   }),
 });
 

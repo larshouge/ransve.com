@@ -1,0 +1,66 @@
+---
+import type { ImageMetadata } from 'astro';
+import { getCollection, getEntry, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import PageHero from '../../components/PageHero.astro';
+import VerkCard from '../../components/VerkCard.astro';
+import Footer from '../../components/Footer.astro';
+import Lightbox from '../../components/Lightbox.astro';
+import { buildImageMap, resolveImage } from '../../lib/images';
+
+const side = await getEntry('sider', 'verk');
+if (!side) throw new Error('Mangler src/content/sider/verk.md');
+const { Content } = await render(side);
+
+const verkBilder = buildImageMap(
+  import.meta.glob<{ default: ImageMetadata }>('../../assets/verk/*.{jpg,jpeg,png,webp}', { eager: true })
+);
+
+const verk = (await getCollection('verk'))
+  .sort((a, b) => a.data.rekkefolge - b.data.rekkefolge)
+  .map((entry) => ({
+    entry,
+    bilde: resolveImage(verkBilder, entry.data.bildefil, `verk.csv, rad "${entry.id}"`),
+  }));
+---
+<Base title="Verk — Bjørn Ransve" description={side.data.merkelapp}>
+  <Nav />
+  <main>
+    <PageHero kicker={side.data.merkelapp} heading={side.data.overskrift}>
+      <Content />
+    </PageHero>
+
+    {
+      verk.length > 0 ? (
+        <div class="grid">
+          {verk.map(({ entry, bilde }, i) => (
+            <VerkCard entry={entry} bilde={bilde} eager={i < 4} />
+          ))}
+        </div>
+      ) : (
+        <p class="tom">Verkene legges inn fortløpende — de første kommer snart.</p>
+      )
+    }
+  </main>
+  <Footer />
+  <Lightbox />
+</Base>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: clamp(16px, 2.5vw, 28px);
+    padding: 0 var(--rv-gutter) clamp(40px, 6vw, 64px);
+  }
+  .tom {
+    font-family: var(--rv-serif);
+    font-size: 15px;
+    color: var(--rv-muted);
+    max-width: 520px;
+    border-top: 1px solid var(--rv-line);
+    margin: clamp(24px, 4vw, 40px) var(--rv-gutter) 0;
+    padding: clamp(24px, 4vw, 40px) 0 clamp(56px, 10vw, 96px);
+  }
+</style>

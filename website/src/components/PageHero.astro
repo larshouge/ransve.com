@@ -1,0 +1,91 @@
+---
+import PortraitRotator from './PortraitRotator.astro';
+
+interface Props {
+  kicker: string;
+  heading: string[];
+  portrettTekst?: string;
+}
+const { kicker, heading, portrettTekst } = Astro.props;
+---
+<header class="hero">
+  <div class="intro">
+    <div class="kicker">{kicker}</div>
+    <h1>
+      {heading.map((line, i) => (i === 0 ? line : <><br />{line}</>))}
+    </h1>
+    <div class="lede">
+      <slot />
+    </div>
+  </div>
+  {portrettTekst && <PortraitRotator caption={portrettTekst} />}
+</header>
+
+<style>
+  .hero {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(24px, 5vw, 56px);
+    align-items: center;
+    padding: clamp(32px, 7vw, 72px) var(--rv-gutter) clamp(40px, 6vw, 64px);
+  }
+  .intro {
+    flex: 2 1 380px;
+    min-width: 0;
+  }
+  .kicker {
+    font-family: var(--rv-sans);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--rv-muted);
+    margin-bottom: 18px;
+  }
+  h1 {
+    font-family: var(--rv-serif);
+    font-weight: 400;
+    font-size: clamp(32px, 5.5vw, 52px);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    color: var(--rv-text);
+    margin: 0 0 20px;
+  }
+  .lede :global(p) {
+    font-family: var(--rv-serif);
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--rv-muted);
+    max-width: 520px;
+    margin: 0;
+  }
+  .lede :global(p + p) {
+    margin-top: 14px;
+  }
+  .lede :global(ul) {
+    font-family: var(--rv-serif);
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--rv-muted);
+    max-width: 520px;
+    margin: 14px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .lede :global(li) {
+    padding-left: 1.4em;
+    position: relative;
+  }
+  .lede :global(li)::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--rv-faint);
+  }
+  .lede :global(li + li) {
+    margin-top: 8px;
+  }
+  .lede :global(strong) {
+    color: var(--rv-body);
+    font-weight: 500;
+  }
+</style>
