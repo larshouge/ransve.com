@@ -3,7 +3,7 @@
 **Prosjekt:** Bjørn Ransve — kommunikasjonsstrategi 2026
 **Del av:** Teknologiprodukt (ransve.com). Innholdsproduksjon (sosiale medier, nyhetsbrev) er et eget produkt og løses i Claude Projects — se kapittel 7.
 **Ansvarlig:** Lars Houge
-**Sist oppdatert:** august 2026
+**Sist oppdatert:** september 2026 (innholdsarkitektur revidert til CSV-per-samling, se kap. 3 og 6.4)
 **Status:** Vedtatt struktur, klar for oppsett
 
 ---
@@ -62,7 +62,15 @@ Dette dokumentet dekker kun venstre kolonne. Høyre kolonne får sitt eget kort 
 │   │       └── deploy-domeneshop.md
 │   ├── src/
 │   │   ├── content/
-│   │   │   └── verk/                # Ett .md-innhold per verk (NO + EN felt)
+│   │   │   ├── tidslinje/           # tidslinje.csv (tiårspaneler) + README.md
+│   │   │   └── verk/                # verk.csv (NO + EN felt per rad) + README.md
+│   │   ├── assets/
+│   │   │   ├── tidslinje/           # bilder til tidslinje.csv, filnavn = bildefil-kolonnen
+│   │   │   └── verk/                # bilder til verk.csv
+│   │   ├── lib/
+│   │   │   ├── csv.ts                # CSV-parser brukt av content.config.ts
+│   │   │   └── images.ts             # filnavn → ImageMetadata, feiler bygget ved feil stavemåte
+│   │   ├── content.config.ts        # definerer collections, én fil-loader per CSV
 │   │   ├── pages/
 │   │   │   ├── index.astro
 │   │   │   ├── en/index.astro
@@ -79,7 +87,19 @@ Dette dokumentet dekker kun venstre kolonne. Høyre kolonne får sitt eget kort 
     └── README.md                    # Peker til Claude Projects — ingen kjørbare agenter her
 ```
 
-**Merk:** `content/`-mappen i repoet er bevisst tynn. Selve innholdsproduksjonen skjer ikke i dette repoet — den skjer i Claude Projects. Mappen finnes kun som et sted å eksportere ferdig, godkjent tekst *til* før den går inn i `website/src/content/verk/` (se kap. 7.2).
+**Merk:** `content/`-mappen i repoet er bevisst tynn. Selve innholdsproduksjonen skjer ikke i dette repoet — den skjer i Claude Projects. Mappen finnes kun som et sted å eksportere ferdig, godkjent tekst *til* før den settes inn som en rad i `website/src/content/verk/verk.csv` (se kap. 7.2).
+
+**Innholdsarkitektur (revidert september 2026):** hver content collection er
+én CSV-fil (`tidslinje.csv`, `verk.csv`) med bilder i en tilhørende
+`src/assets/<samling>/`-katalog. Dette erstatter den opprinnelige planen om
+én Markdown-fil per verk/panel. Årsak: Bjørn skal kunne redigere metadata
+direkte i én samlet, regneark-vennlig fil, og bildene skal ligge sortert og
+navngitt i en fast rekkefølge i én katalog, i stedet for spredt over mange
+enkeltfiler. CSV-ens bildekolonne (`bildefil`) inneholder kun et filnavn —
+komponentene slår det opp mot bildekatalogen via `src/lib/images.ts`, som
+feiler bygget med en tydelig feilmelding hvis filnavnet ikke finnes. Se
+`website/src/content/tidslinje/README.md` og `website/src/content/verk/README.md`
+for hvordan filene redigeres.
 
 ---
 
@@ -123,17 +143,45 @@ bygger på når det er tvil.
 ```markdown
 # ransve.com — tekniske tillegg
 
-(Arver alle regler fra rot-CLAUDE.md automatisk.)
+(Arver alle regler fra `../CLAUDE.md` automatisk — språkregler, faktagrenser,
+rettigheter og kildekrav gjelder like fullt her.)
 
 ## Stack
 - Astro (statisk generering, ingen server-side kode, ingen database)
-- Innhold som Astro content collections under src/content/verk/
-- Ingen CMS — innhold redigeres som Markdown-filer i repoet
+- Ingen CMS — innhold redigeres som filer i repoet
+
+## Innholdsarkitektur: én fil, én bildekatalog, per samling
+Hver content collection (`src/content.config.ts`) har all sin metadata i
+**én CSV-fil**, med bilder i en tilhørende `src/assets/<samling>/`-katalog.
+Dette er bevisst valgt slik at Bjørn selv kan redigere metadata direkte i én
+oversiktlig fil (regneark-vennlig format), i stedet for å lete gjennom mange
+enkeltfiler.
+
+- `src/content/tidslinje/tidslinje.csv` + `src/assets/tidslinje/` — de sju
+  tiårspanelene på forsiden. Se `src/content/tidslinje/README.md`.
+- `src/content/verk/verk.csv` + `src/assets/verk/` — verk-oversikten (ikke
+  bygget som side ennå, kun datalag). Se `src/content/verk/README.md`.
+
+CSV-radenes bildekolonne (`bildefil`) inneholder **kun filnavnet**, ikke en
+sti. Astro-komponenter slår filnavnet opp mot bildekatalogen via
+`src/lib/images.ts` (`buildImageMap` + `resolveImage`), som feiler bygget
+med en tydelig norsk feilmelding hvis filnavnet er stavet feil eller filen
+mangler — dette skal ALDRI mykes opp til en stille fallback, fordi en
+lydløs feil i praksis betyr et ødelagt bilde på en publisert side.
+`src/lib/csv.ts` har CSV-parseren som brukes av `content.config.ts`.
+
+Ny samling med samme mønster: opprett `src/content/<navn>/<navn>.csv` og
+`src/assets/<navn>/`, registrer collection i `content.config.ts` med
+Astros `file()`-loader og `{ parser: parseCsv }`, skriv en `README.md` ved
+siden av CSV-filen etter samme mal som de to over.
 
 ## Struktur
 - Engelsk er hovedspråk på ransve.com (jf. strategiens "engelsk først" for nettsiden).
   Norsk versjon ligger under /no/.
-- Hver verkside har: tittel, år, teknikk, mål, kort tekst (NO+EN), bilde, status/pris.
+- Hver verkside har: tittel, år, teknikk, mål, kort tekst (NO+EN), bilde,
+  status/pris — se kolonnene i `src/content/verk/verk.csv`.
+- Forsiden viser et utvalg på rundt 12 verk, en tidslinje og en kort
+  om-tekst — ikke mer, jf. fase 0–1 i handlingsplanen.
 
 ## Hosting
 - Domeneshop Web Light. FTP/SFTP. INGEN SSH, ingen PHP, ingen Node på serveren.
@@ -154,7 +202,7 @@ bygger på når det er tvil.
 | `astro-bygger` | Bygger og endrer Astro-sider, komponenter, ruter | Read, Write, Edit, Bash | inherit | Ja (kun `website/src`, `website/public`) |
 | `faktasjekker` | Kontrollerer årstall/navn mot biografien før publisering | Read, Grep, Glob | sonnet | Nei — skrivebeskyttet med vilje |
 | `oversetter-en` | To-runders engelsk oversettelse av verkstekster og sidetekst | Read, Write | sonnet | Ja (kun engelske filer) |
-| `innhold-integrator` | Tar ferdig, godkjent tekst fra `/content/klar-for-web/` og setter den inn som Astro content-entries | Read, Write, Edit | sonnet | Ja (kun `src/content/verk`) |
+| `innhold-integrator` | Tar ferdig, godkjent tekst fra `/content/klar-for-web/` og setter den inn som en rad i `verk.csv` | Read, Write, Edit | sonnet | Ja (kun `src/content/verk`, `src/assets/verk`) |
 | `deploy-domeneshop` | Bygger produksjon og laster opp via SFTP | Bash | haiku | Kun `dist/`-overføring, ingen kildekode |
 
 Prinsipp: den som *skriver* og den som *kontrollerer* er alltid to forskjellige agenter. `faktasjekker` har derfor bevisst ingen skrivetilgang — den flagger, den retter ikke selv.
@@ -180,8 +228,11 @@ Du er frontend-utvikleren for ransve.com, bygget i Astro.
 Prinsipper:
 - Statisk generering. Ingen server-side logikk, ingen database, ingen klient-tunge
   rammeverk med mindre det er eksplisitt bedt om.
-- Innhold hentes fra src/content/verk/ (Astro content collections), aldri hardkodet
-  i komponentene.
+- Innhold hentes fra Astro content collections (src/content/*/*.csv), aldri
+  hardkodet i komponentene. Hver samling er én CSV-fil + én bildekatalog i
+  src/assets/ — filnavn i CSV-ens bildekolonne, aldri en sti. Se
+  website/CLAUDE.md og src/lib/images.ts. Ikke gå tilbake til én
+  Markdown-fil per verk/panel — det var forrige arkitektur.
 - Engelsk er hovedspråket på forsiden; norsk ligger under /no/.
 - Verksider skal alltid vise: tittel, år, teknikk, mål, kort tekst, bilde, status/pris.
 - Endre aldri tekstinnhold selv — det er faktasjekker og oversetter-en sin jobb.
@@ -247,22 +298,39 @@ uten tydelig godkjenning, si fra og be om bekreftelse før du fortsetter.
 ```markdown
 ---
 name: innhold-integrator
-description: Tar ferdig godkjent tekst (fra Claude Projects, eksportert til content/klar-for-web/) og setter den inn som strukturerte content-filer for Astro. Brukes når nytt verk eller ny sidetekst skal inn på nettsiden.
+description: Tar ferdig godkjent tekst (fra Claude Projects, eksportert til content/klar-for-web/) og setter den inn som en rad i verk.csv. Brukes når nytt verk eller ny sidetekst skal inn på nettsiden.
 tools: Read, Write, Edit
 model: sonnet
 ---
 
 Du er broen mellom innholdsproduksjonen (som skjer utenfor dette repoet, i
-Claude Projects) og nettsidens struktur.
+Claude Projects) og nettsidens innholdsarkitektur: én CSV-fil per samling,
+med bilder i en tilhørende bildekatalog. Se `website/src/content/verk/README.md`
+for kolonneoversikten og `website/CLAUDE.md` for arkitekturen generelt.
 
-Når du får en tekstfil fra /content/klar-for-web/:
-1. Sjekk at den har alle påkrevde felt: tittel, år, teknikk, mål, NO-tekst,
-   EN-tekst, status/pris, bildereferanse.
+Når du får en tekstfil fra `../content/klar-for-web/`:
+1. Sjekk at den har alle påkrevde felt: id (slug), tiår, årstall, tittel,
+   teknikk, mål, NO-tekst, EN-tekst, status, pris, bildereferanse.
 2. Mangler noe — spør, dikt aldri opp manglende data selv.
-3. Konverter til riktig Astro content collection-format under
-   website/src/content/verk/[slug].md, med korrekt frontmatter.
-4. Flytt kildefilen til /content/arkivert/ når den er integrert, slik at
-   klar-for-web/ alltid viser hva som gjenstår.
+3. Les `website/src/content/verk/verk.csv` i sin helhet.
+   - Nytt verk: legg til en ny rad nederst, med en unik `id` (kebab-case av
+     tittel + årstall, f.eks. `love-litografiet-2011`).
+   - Oppdatering av eksisterende verk: finn raden med samme `id` og erstatt
+     hele raden — ikke bare enkeltfelt, for å unngå at gamle og nye verdier
+     blandes i samme rad.
+   - CSV har kommentarer i en `README.md` ved siden av seg, ikke i selve
+     filen — hver rad skal derfor bare inneholde data, i riktig kolonnerekkefølge.
+4. Legg bildefilen i `website/src/assets/verk/` med nøyaktig samme filnavn
+   som du skriver i `bildefil`-kolonnen. Feil stavemåte her stopper bygget —
+   dobbeltsjekk at filnavnet i raden og filnavnet på disk er identiske.
+5. Flytt kildefilen til `../content/arkivert/` når den er integrert, slik at
+   `klar-for-web/` alltid viser hva som gjenstår.
+
+Skriv rene CSV-rader: bruk anførselstegn rundt felt som inneholder komma,
+anførselstegn eller linjeskift, og doble eventuelle anførselstegn inni et
+sitert felt (`"` → `""`) — samme regel som Excel/Numbers bruker. Er du i tvil
+om et felt er korrekt escapet, spør heller enn å gjette — en feil her kan
+forskyve alle kolonnene i raden.
 
 Du endrer aldri selve teksten — det er faktasjekker og oversetter-en sitt ansvar,
 og skal være gjort før filen når deg.
@@ -308,7 +376,7 @@ Dette dokumentet styrer ikke innholdsproduksjonen, men her er de tre koblingspun
 
 Når en verkstekst er skrevet og godkjent i Claude Projects:
 1. Eksporter/lim inn teksten som en fil i `/content/klar-for-web/`.
-2. Be `innhold-integrator`-agenten i Claude Code sette den inn på riktig sted i `website/src/content/verk/`.
+2. Be `innhold-integrator`-agenten i Claude Code sette den inn som en rad i `website/src/content/verk/verk.csv`, og legge bildefilen i `website/src/assets/verk/`.
 3. `faktasjekker` og `oversetter-en` kan kjøres på nytt her som en siste kontroll før publisering — nettsiden er det mest varige og offentlige leddet, så det tåler én kontroll ekstra selv om teksten allerede er sjekket i Projects.
 
 ### 7.3 Holde reglene i sync
