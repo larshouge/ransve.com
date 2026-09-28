@@ -1,0 +1,137 @@
+---
+// Global visningsboks: åpnes når man klikker på et bilde med
+// data-lightbox-trigger. Metadata sendes inn via data-attributter
+// på selve utløser-knappen (se DecadePanel.astro).
+---
+<dialog id="rv-lightbox" class="rv-lightbox" aria-labelledby="rv-lightbox-years">
+  <button type="button" class="close" data-lightbox-close aria-label="Lukk">✕</button>
+  <div class="frame">
+    <img data-lightbox-img alt="" />
+  </div>
+  <div class="meta">
+    <h2 data-lightbox-years id="rv-lightbox-years"></h2>
+    <div class="title" data-lightbox-title></div>
+    <p class="text" data-lightbox-text></p>
+    <div class="caption" data-lightbox-caption></div>
+  </div>
+</dialog>
+
+<script>
+  const dialog = document.getElementById('rv-lightbox') as HTMLDialogElement | null;
+  if (dialog) {
+    const img = dialog.querySelector<HTMLImageElement>('[data-lightbox-img]')!;
+    const years = dialog.querySelector<HTMLElement>('[data-lightbox-years]')!;
+    const title = dialog.querySelector<HTMLElement>('[data-lightbox-title]')!;
+    const text = dialog.querySelector<HTMLElement>('[data-lightbox-text]')!;
+    const caption = dialog.querySelector<HTMLElement>('[data-lightbox-caption]')!;
+
+    const open = (trigger: HTMLElement) => {
+      img.src = trigger.dataset.full ?? '';
+      img.alt = trigger.dataset.alt ?? '';
+      years.textContent = trigger.dataset.aar ?? '';
+      title.textContent = trigger.dataset.tittel ?? '';
+      text.textContent = trigger.dataset.tekst ?? '';
+      caption.textContent = trigger.dataset.bildetekst ?? '';
+      dialog.showModal();
+    };
+
+    document.addEventListener('click', (e) => {
+      const trigger = (e.target as HTMLElement).closest<HTMLElement>('[data-lightbox-trigger]');
+      if (trigger) open(trigger);
+    });
+
+    dialog.addEventListener('click', (e) => {
+      // Klikk utenfor innholdet (på ::backdrop-siden av dialogen) lukker.
+      if (e.target === dialog) dialog.close();
+    });
+    dialog.querySelector('[data-lightbox-close]')?.addEventListener('click', () => dialog.close());
+  }
+</script>
+
+<style>
+  .rv-lightbox {
+    padding: 0;
+    border: none;
+    max-width: min(1000px, 92vw);
+    max-height: 90vh;
+    background: #0f0f0d;
+    color: var(--rv-text);
+    overflow-y: auto;
+  }
+  .rv-lightbox::backdrop {
+    background: rgba(0, 0, 0, 0.86);
+  }
+  .rv-lightbox[open] {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .close {
+    position: sticky;
+    top: 12px;
+    margin: 12px 12px -44px auto;
+    align-self: flex-start;
+    background: rgba(15, 15, 13, 0.7);
+    border: 1px solid var(--rv-line);
+    color: var(--rv-text);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 1;
+  }
+  .close:hover,
+  .close:focus-visible {
+    background: var(--rv-line);
+  }
+  .frame {
+    flex: 1 1 520px;
+    min-width: 280px;
+    display: flex;
+    align-items: center;
+    background: #000;
+  }
+  .frame img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .meta {
+    flex: 1 1 320px;
+    min-width: 260px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+    padding: clamp(28px, 4vw, 48px);
+  }
+  .meta h2 {
+    font-family: var(--rv-serif);
+    font-weight: 400;
+    font-size: clamp(28px, 4vw, 40px);
+    line-height: 1;
+    color: var(--rv-text);
+    margin: 0;
+  }
+  .title {
+    font-family: var(--rv-sans);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--rv-muted);
+    text-transform: uppercase;
+  }
+  .text {
+    font-family: var(--rv-serif);
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--rv-body);
+    margin: 0;
+  }
+  .caption {
+    font-family: var(--rv-sans);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--rv-faint);
+  }
+</style>

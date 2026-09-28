@@ -5,6 +5,7 @@ import Nav from '../../components/Nav.astro';
 import PortraitRotator from '../../components/PortraitRotator.astro';
 import DecadePanel from '../../components/DecadePanel.astro';
 import Footer from '../../components/Footer.astro';
+import Lightbox from '../../components/Lightbox.astro';
 
 const forside = await getEntry('sider', 'forside');
 if (!forside) throw new Error('Mangler src/content/sider/forside.md');
@@ -30,6 +31,7 @@ const tiar = (await getCollection('tidslinje')).sort((a, b) => a.data.rekkefolge
     {tiar.map((entry, i) => <DecadePanel entry={entry} eager={i === 0} />)}
   </main>
   <Footer />
+  <Lightbox />
 </Base>
 
 <style>
